@@ -6,6 +6,7 @@ import { RootState } from '../../redux/store';
 import { Toolbar } from 'primereact/toolbar';
 import { Chip } from 'primereact/chip';
 import { LoadUsers } from '../../redux/users/usersThunks';
+import { TableUsersComponent } from '../../components/TableUsersComponent';
 
 
 export const AdminPage = () => {
@@ -34,6 +35,7 @@ export const AdminPage = () => {
   return (
     <>
       <Toolbar left={leftContents} right={rightContents} />
+      <TableUsersComponent />
     </>
   )
 }

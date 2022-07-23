@@ -1,7 +1,7 @@
 import { AppDispatch } from '../store';
-import { setUsers, startLoadingData, stopLoadingData } from './usersSlice';
+import { setNewUser, setUsers, startLoadingData, startSaving, stopLoadingData, stopSaving } from './usersSlice';
 import { authApi } from '../../api/authApi';
-import { UsersResponse } from '../../interfaces/userInterface';
+import { UsersResponse, Usuario, CreateUserResponse } from '../../interfaces/userInterface';
 
 
 export const LoadUsers = () => {
@@ -15,6 +15,21 @@ export const LoadUsers = () => {
         } catch (error) {
             console.log(error);
             dispatch(stopLoadingData());
+        }
+    }
+}
+
+export const CreateUser = (nombre: string, apellido: string, cedula: number, correo: string, rol: string, password: string) => {
+    return async (dispatch: AppDispatch) => {
+        dispatch(startSaving());
+        try {
+            const resp = await authApi.post<CreateUserResponse>('/usuarios', { nombre, apellido, cedula, correo, rol, password });
+            dispatch(setNewUser(resp.data.usuario));
+            console.log(resp.data.usuario);
+            dispatch(stopSaving());
+        } catch (error) {
+            console.log(error);
+            dispatch(stopSaving());
         }
     }
 }

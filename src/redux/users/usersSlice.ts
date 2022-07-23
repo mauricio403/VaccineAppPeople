@@ -9,6 +9,7 @@ export interface productState {
     active: Usuario
     isLoading: boolean
     isDeleting: boolean
+    msg?: string
 }
 
 const initialState: productState = {
@@ -39,18 +40,22 @@ export const usersSlice = createSlice({
         stopSaving: (state) => {
             state.isSaving = false
         },
-        setNewProduct: (state, action: PayloadAction<Usuario>) => {
+        setNewUser: (state, action: PayloadAction<Usuario>) => {
             state.users.push(action.payload)
+            state.msg = action.payload.nombre + " fue agregado correctamente"
         },
         startDeleteing: (state) => {
             state.isDeleting = true
         },
         stopDeleteing: (state) => {
             state.isDeleting = false
+        },
+        clearErrorMessage: (state) => {
+            state.msg = '';
         }
 
     },
 })
 
 // Action creators are generated for each case reducer function
-export const { setUsers, startLoadingData, stopLoadingData, startSaving, stopSaving, setNewProduct, startDeleteing, stopDeleteing } = usersSlice.actions
+export const { setUsers, startLoadingData, stopLoadingData, startSaving, stopSaving, setNewUser, startDeleteing, stopDeleteing, clearErrorMessage } = usersSlice.actions
