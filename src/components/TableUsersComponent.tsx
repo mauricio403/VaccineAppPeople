@@ -13,41 +13,47 @@ import { Dropdown } from 'primereact/dropdown';
 import { roles, tableItems } from '../helpers/TableDates';
 import { useFormik } from 'formik';
 import { startCreateUser } from '../redux/auth/authThunks';
-import { CreateUser } from '../redux/users/usersThunks';
+import { FilterMatchMode, FilterOperator } from 'primereact/api';
+import { CreateUser, DeleteUser, UpdateUser } from '../redux/users/usersThunks';
 import { classNames } from 'primereact/utils';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.css'
 
 interface CreateUservalues {
     nombre: string;
     apellido: string;
-    cedula: string;
+    cedula: string | number;
     correo: string
     password: string
     rol: string
 }
-
-
-
 
 export const TableUsersComponent = () => {
 
     const { users, isSaving, msg } = useSelector((state: RootState) => state.users);
     const dispatch = useDispatch();
 
-    const isSavingUser = useMemo(() => isSaving === true, [isSaving]);
-    
+    useEffect(() => {
+        if (msg !== '') {
+            Swal.fire('Error en la creacion', msg, 'error');
+        }
+    }, [msg])
 
-    const [product, setProduct] = useState(tableItems);
+    const isSavingUser = useMemo(() => isSaving === true, [isSaving]);
+
+    const [user, setUser] = useState(tableItems);
     const [productDialog, setProductDialog] = useState(false);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [globalFilter, setGlobalFilter] = useState(null);
+
     const toast = useRef(null);
     const dt = useRef(null);
 
 
 
-    const openNew = () => {
-        setProduct(tableItems);
+    const openNew = (user) => {
+        setUser(user);
         setProductDialog(true);
     }
 
@@ -59,13 +65,32 @@ export const TableUsersComponent = () => {
         setDeleteProductDialog(false);
     }
 
-    const confirmDeleteProduct = (product) => {
-        setProduct(product);
+    const confirmDeleteUser = (user) => { //abre modal
+        setUser(user);
         setDeleteProductDialog(true);
     }
-    const editProduct = (product) => {
-        setProductDialog(true);
+    const handleDeleteUser = (user) => { //elimina
+        setDeleteProductDialog(false);
+        dispatch(DeleteUser(user.uid) as any);
+
     }
+
+    const editProduct = (user) => {
+        setProductDialog(true);
+
+        setUser(user);
+    }
+
+    const handleCreate = (user) => {
+        setUser(user);
+        if (user.uid) {
+            dispatch(UpdateUser(formik.values.nombre, formik.values.apellido, formik.values.cedula, formik.values.correo, formik.values.rol, user.uid) as any);
+        } else {
+            formik.handleSubmit();
+        }
+    }
+
+
 
     const leftToolbarTemplate = () => {
         return (
@@ -79,7 +104,7 @@ export const TableUsersComponent = () => {
         return (
             <>
                 <Button icon="pi pi-pencil" className="p-button-rounded p-button-success mr-2" onClick={() => editProduct(rowData)} />
-                <Button icon="pi pi-trash" className="p-button-rounded p-button-warning" onClick={() => confirmDeleteProduct(rowData)} />
+                <Button icon="pi pi-trash" className="p-button-rounded p-button-warning" onClick={() => confirmDeleteUser(rowData)} />
             </>
         );
     }
@@ -98,12 +123,22 @@ export const TableUsersComponent = () => {
         </div>
     );
 
+
     const deleteProductDialogFooter = (
         <>
-            <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteProductDialog} />
-            <Button label="Yes" icon="pi pi-check" className="p-button-text" type='button' />
+            <Button label="Cancelar" icon="pi pi-times" className="p-button" onClick={hideDeleteProductDialog} />
+            <Button label="Eliminar" icon="pi pi-trash" className="p-button-danger" type='button' onClick={() => handleDeleteUser(user)} />
         </>
     );
+
+    const productDialogFooter = (
+        <>
+            <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} />
+            <Button label="Añadir" icon="pi pi-save" className="p-button-text" type='button' loading={isSavingUser} onClick={handleCreate} />
+        </>
+    );
+
+
 
     const formik = useFormik({
         initialValues: {
@@ -147,10 +182,9 @@ export const TableUsersComponent = () => {
             return errors;
         },
         onSubmit: (data) => {
-            console.log(data);
-            dispatch(CreateUser(data.nombre, data.apellido, data.cedula, data.correo, data.rol, data.password) as any)
-            toast.current.show({severity:'success', summary: 'Usuario Agregado!', detail:'Usuario agregado exitosamente!', life: 3000});
-             setProductDialog(false);
+            dispatch(CreateUser(data.nombre, data.apellido, data.cedula, data.correo, data.rol, data.password) as any);
+            toast.current.show({ severity: 'success', summary: 'Usuario Agregado!', detail: 'Usuario agregado exitosamente!', life: 5000 });
+            setProductDialog(false);
             formik.resetForm();
         }
     });
@@ -160,17 +194,37 @@ export const TableUsersComponent = () => {
     const getFormErrorMessage = (name: string) => {
         return isFormFieldValid(name) && <small className="p-error">{formik.errors[name]}</small>;
     };
+    const [filters1, setFilters1] = useState(null);
+    const [globalFilterValue1, setGlobalFilterValue1] = useState('');
 
-    const handleLogin = () => {
-        formik.handleSubmit();
+    const [filters2, setFilters2] = useState({
+        'status': { value: null, matchMode: FilterMatchMode.EQUALS },
+    });
+
+    const statuses = [
+        'No vacunado', 'vacunado', 
+    ];
+
+    const initFilters1 = () => {
+        setFilters1({
+
+            'status': { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
+          
+        });
+        setGlobalFilterValue1('');
     }
 
-    const productDialogFooter = (
-        <>
-            <Button label="Cancel" icon="pi pi-times" className="p-button-text" onClick={hideDialog} />
-            <Button label="Save" icon="pi pi-check" className="p-button-text" type='button' loading={isSavingUser} onClick={handleLogin} />
-        </>
-    );
+    const statusBodyTemplate2 = (rowData) => {
+        return <span className={`customer-badge status-${rowData.status}`}>{rowData.status}</span>;
+    }
+    const statusFilterTemplate = (options) => {
+        return <Dropdown value={options.value} options={statuses} onChange={(e) => options.filterCallback(e.value, options.index)} itemTemplate={statusItemTemplate} placeholder="Select a Status" className="p-column-filter" showClear />;
+    }
+    const statusItemTemplate = (option) => {
+        return <span className={`customer-badge status-${option}`}>{option}</span>;
+    }
+
+
 
 
 
@@ -183,6 +237,9 @@ export const TableUsersComponent = () => {
 
                 <DataTable ref={dt} value={users}
                     dataKey="id" paginator rows={10} rowsPerPageOptions={[5, 10, 25]}
+                    filters={filters1} filterDisplay="menu"
+                    globalFilterFields={[ 'status']}
+                    emptyMessage="No customers found."
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} usuarios"
                     globalFilter={globalFilter} header={header} responsiveLayout="scroll">
@@ -190,12 +247,12 @@ export const TableUsersComponent = () => {
                     <Column field="nombre" header="Nombres" sortable style={{ minWidth: '16rem' }}></Column>
                     <Column field="apellido" header="Apellidos" sortable style={{ minWidth: '16rem' }}></Column>
                     <Column field="correo" header="Correo" sortable style={{ minWidth: '10rem' }}></Column>
-                    <Column field="estadoVacunas" header="Estado de vacuna" body={statusBodyTemplate} sortable style={{ minWidth: '12rem' }}></Column>
+                    <Column field="estadoVacunas" header="Estado de vacuna" body={statusBodyTemplate} sortable style={{ minWidth: '12rem' }} showFilterMatchModes={false} filter filterElement={statusFilterTemplate}></Column>
                     <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '8rem' }}></Column>
                 </DataTable>
             </div>
 
-            <Dialog visible={productDialog} style={{ width: '450px' }} header="Información de Usuario" modal className="p-fluid " footer={productDialogFooter} onHide={hideDialog}>
+            <Dialog visible={productDialog} style={{ width: '450px' }} header={`Informacion de ${user.nombre ? user.nombre : 'usuario'}`} modal className="p-fluid " footer={productDialogFooter} onHide={hideDialog}>
 
                 <div className="field">
                     <label htmlFor="cedula">Cedula</label>
@@ -239,10 +296,10 @@ export const TableUsersComponent = () => {
 
             </Dialog>
 
-            <Dialog visible={deleteProductDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
+            <Dialog visible={deleteProductDialog} style={{ width: '450px' }} header="Confirmación" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
                 <div className="confirmation-content">
                     <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                    {product && <span>Are you sure you want to delete <b>{product.name}</b>?</span>}
+                    {user && <span>Estas seguro que quieres eliminar a este usuario? <b>{user.nombre}</b>?</span>}
                 </div>
             </Dialog>
 

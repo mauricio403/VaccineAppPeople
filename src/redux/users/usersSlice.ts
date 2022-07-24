@@ -4,7 +4,6 @@ import { Usuario } from '../../interfaces/userInterface';
 
 export interface productState {
     isSaving: boolean
-    messageSaved: string
     users: Usuario[]
     active: Usuario
     isLoading: boolean
@@ -14,11 +13,11 @@ export interface productState {
 
 const initialState: productState = {
     isSaving: false,
-    messageSaved: "",
     users: [],
     active: {} as Usuario,
     isLoading: false,
     isDeleting: false,
+    msg: ''
 }
 
 export const usersSlice = createSlice({
@@ -42,13 +41,22 @@ export const usersSlice = createSlice({
         },
         setNewUser: (state, action: PayloadAction<Usuario>) => {
             state.users.push(action.payload)
-            state.msg = action.payload.nombre + " fue agregado correctamente"
+        },
+        setUpdateUser: (state, action: PayloadAction<Usuario>) => {
+            const index = state.users.findIndex(user => user.uid === action.payload.uid)
+            state.users[index] = action.payload
+        },
+        setMessage: (state, action: PayloadAction<string>) => {
+            state.msg = action.payload
         },
         startDeleteing: (state) => {
             state.isDeleting = true
         },
         stopDeleteing: (state) => {
             state.isDeleting = false
+        },
+        deleteUser: (state, action: PayloadAction<Usuario>) => {
+            state.users = state.users.filter(user => user.uid !== action.payload.uid)
         },
         clearErrorMessage: (state) => {
             state.msg = '';
@@ -58,4 +66,17 @@ export const usersSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setUsers, startLoadingData, stopLoadingData, startSaving, stopSaving, setNewUser, startDeleteing, stopDeleteing, clearErrorMessage } = usersSlice.actions
+export const {
+    setUsers,
+    startLoadingData,
+    stopLoadingData,
+    startSaving,
+    stopSaving,
+    setNewUser,
+    startDeleteing,
+    stopDeleteing,
+    clearErrorMessage,
+    deleteUser,
+    setMessage,
+    setUpdateUser
+} = usersSlice.actions
