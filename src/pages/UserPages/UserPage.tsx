@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { InputText } from 'primereact/inputtext';
-import { InputNumber } from 'primereact/inputnumber';
-import { Button } from 'primereact/button';
+
+ import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import { Calendar } from 'primereact/calendar';
 import { Dropdown } from 'primereact/dropdown';
@@ -134,24 +134,24 @@ export const UserPage = () => {
       <div className='card flex justify-content-center card-container mb-5'>
 
         <Card title="Tu información" style={{ width: '25em' }}>
-          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Cédula: {active.cedula}</p>
-          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Nombres: {active.nombre}</p>
-          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Apellidos: {active.apellido}</p>
-          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Fecha Nacimiento: {active.fechaNacimiento}</p>
-          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Correo: {active.correo}</p>
-          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Dirección: {active.direccion}</p>
-          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Telefono: {active.telefono}</p>
-          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Estado de Vacunación: {active.estadoVacunas}</p>
+          <div className="m-0 col-12" style={{ lineHeight: '1.5' }}> <Chip label="Cedula" icon="pi pi-id-card" className="mr-2 mb-2" /> {active.cedula}</div>
+          <div className="m-0 col-12" style={{ lineHeight: '1.5' }}><Chip label="Nombres" icon="pi pi-user" className="mr-2 mb-2" /> {active.nombre}</div>
+          <div className="m-0 col-12" style={{ lineHeight: '1.5' }}><Chip label="Apellidos" icon="pi pi-user" className="mr-2 mb-2" /> {active.apellido}</div>
+          <div className="m-0 col-12" style={{ lineHeight: '1.5' }}><Chip label=" Nacimiento" icon="pi pi-calendar" className="mr-2 mb-2" /> {active.fechaNacimiento}</div>
+          <div className="m-0 col-12" style={{ lineHeight: '1.5' }}><Chip label="Correo" icon="pi pi-send" className="mr-2 mb-2" />{active.correo}</div>
+          <div className="m-0 col-12" style={{ lineHeight: '1.5' }}><Chip label="Dirección" icon="pi pi-map" className="mr-2 mb-2" /> {active.direccion}</div>
+          <div className="m-0 col-12" style={{ lineHeight: '1.5' }}><Chip label="Telefono" icon="pi pi-phone" className="mr-2 mb-2" />{active.telefono}</div>
+          <div className="m-0 col-12" style={{ lineHeight: '1.5' }}><Chip label="Estado de Vacunación" icon="pi pi-heart" className="mr-2 mb-2" /> {active.estadoVacunas}</div>
           {
             active.estadoVacunas === 'Vacunado' ?
               <>
-                <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Tipo de Vacuna: {active.tipoDeVacuna}</p>
-                <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Fecha de Vacunación: {
+                <div className="m-0 col-12" style={{ lineHeight: '1.5' }}><Chip label="Tipo de vacuna" icon="pi pi-align-justify" className="mr-2 mb-2" /> {active.tipoDeVacuna}</div>
+                <div className="m-0 col-12" style={{ lineHeight: '1.5' }}><Chip label=" Nacimiento" icon="pi pi-calendar" className="mr-2 mb-2" /> {
                   active.fechaDeVacunacion ?
                     active.fechaDeVacunacion.split('T')[0]
                     : 'No Vacunado'
-                }</p>
-                <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Número de dosis: {active.numeroDosis}</p>
+                }</div>
+                <div className="m-0 col-12" style={{ lineHeight: '1.5' }}><Chip label=" Nacimiento" icon="pi pi-sort-numeric-down" className="mr-2 mb-2" /> {active.numeroDosis}</div>
               </>
 
               :
