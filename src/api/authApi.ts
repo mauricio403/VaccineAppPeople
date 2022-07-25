@@ -1,5 +1,5 @@
 import axios from "axios";
 
 export const authApi = axios.create({
-    baseURL: "http://localhost:8080/api",
+    baseURL: "https://vaccine-backend3.herokuapp.com/api",
 })
