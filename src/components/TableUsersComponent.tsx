@@ -12,13 +12,13 @@ import { RootState } from '../redux/store';
 import { Dropdown } from 'primereact/dropdown';
 import { roles, tableItems } from '../helpers/TableDates';
 import { useFormik } from 'formik';
-import { startCreateUser } from '../redux/auth/authThunks';
 import { FilterMatchMode, FilterOperator } from 'primereact/api';
 import { CreateUser, DeleteUser, UpdateUser } from '../redux/users/usersThunks';
 import { classNames } from 'primereact/utils';
 import { useMemo, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.css'
+import { Calendar } from 'primereact/calendar';
 
 interface CreateUservalues {
     nombre: string;
@@ -76,17 +76,23 @@ export const TableUsersComponent = () => {
     }
 
     const editProduct = (user) => {
-        setProductDialog(true);
-
         setUser(user);
+        console.log(user.uid);
+        setProductDialog(true);
+    }
+    const handleUpdateUser = (user) => {
+        setUser(user);
+        setProductDialog(false);
+        console.log(user.uid);
+        dispatch(UpdateUser(formik.values.nombre, formik.values.apellido, formik.values.cedula, formik.values.correo, formik.values.rol, user.uid) as any);
     }
 
     const handleCreate = (user) => {
         setUser(user);
-        if (user.uid) {
-            dispatch(UpdateUser(formik.values.nombre, formik.values.apellido, formik.values.cedula, formik.values.correo, formik.values.rol, user.uid) as any);
-        } else {
+        if (!user.uid) {
             formik.handleSubmit();
+        } else {
+            handleUpdateUser(user);
         }
     }
 
@@ -113,6 +119,10 @@ export const TableUsersComponent = () => {
         return <span className={`estadoVacunas-${rowData.estadoVacunas.toLowerCase()}`}>{rowData.estadoVacunas}</span>;
     }
 
+    const vaccineBodyTemplate = (rowData) => {
+        return <span className={`estadoVacunas-${rowData.estadoVacunas.toLowerCase()}`}>{rowData.tipoDeVacuna}</span>;
+    }
+
     const header = (
         <div className="table-header">
             <h5 className="mx-0 my-1">Administracion de Usuarios</h5>
@@ -134,7 +144,7 @@ export const TableUsersComponent = () => {
     const productDialogFooter = (
         <>
             <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} />
-            <Button label="Añadir" icon="pi pi-save" className="p-button-text" type='button' loading={isSavingUser} onClick={handleCreate} />
+            <Button label="Añadir" icon="pi pi-save" className="p-button-text" type='button' loading={isSavingUser} onClick={() =>handleCreate(user)} />
         </>
     );
 
@@ -196,27 +206,39 @@ export const TableUsersComponent = () => {
     };
     const [filters1, setFilters1] = useState(null);
     const [globalFilterValue1, setGlobalFilterValue1] = useState('');
+    const [globalFilterValue2, setGlobalFilterValue2] = useState('');
 
-    const [filters2, setFilters2] = useState({
-        'status': { value: null, matchMode: FilterMatchMode.EQUALS },
-    });
+    const [filters2, setFilters2] = useState(null);
 
     const statuses = [
-        'No vacunado', 'vacunado', 
+        'No vacunado', 'vacunado',
     ];
+
+    const vaccineTypes = [
+        'Sputnik', 'AstraZeneca', 'Pfizer', 'Jhonson&Jhonson', 'Ninguna'
+    ]
 
     const initFilters1 = () => {
         setFilters1({
 
             'status': { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
-          
+
         });
         setGlobalFilterValue1('');
     }
 
+    const initFilters2 = () => {
+        setFilters2({
+            'tipoDeVacuna': { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
+        });
+        setGlobalFilterValue2('');
+    }
+
+
     const statusBodyTemplate2 = (rowData) => {
         return <span className={`customer-badge status-${rowData.status}`}>{rowData.status}</span>;
     }
+
     const statusFilterTemplate = (options) => {
         return <Dropdown value={options.value} options={statuses} onChange={(e) => options.filterCallback(e.value, options.index)} itemTemplate={statusItemTemplate} placeholder="Select a Status" className="p-column-filter" showClear />;
     }
@@ -224,8 +246,25 @@ export const TableUsersComponent = () => {
         return <span className={`customer-badge status-${option}`}>{option}</span>;
     }
 
+    const vaccineTypeFilterTemplate = (options) => {
+        return <Dropdown value={options.value} options={vaccineTypes} onChange={(e) => options.filterCallback(e.value, options.index)} itemTemplate={vaccineTypeItemTemplate} placeholder="Select a Status" className="p-column-filter" showClear />;
+    }
+    const vaccineTypeItemTemplate = (option) => {
+        return <span className={`customer-badge status-${option}`}>{option}</span>;
+    }
 
 
+
+
+    const dateBodyTemplate = (rowData) => {
+        const D = new Date(rowData.fechaDeVacunacion);
+        const result = D.getDate() + "/" + (D.getMonth() + 1) + "/" + D.getFullYear();
+        return result
+    }
+
+    const dateFilterTemplate = (options) => {
+        return <Calendar value={options.value} onChange={(e) => options.filterCallback(e.value, options.index)} dateFormat="mm/dd/yy" placeholder="mm/dd/yyyy" mask="99/99/9999" />
+    }
 
 
     return (
@@ -238,8 +277,8 @@ export const TableUsersComponent = () => {
                 <DataTable ref={dt} value={users}
                     dataKey="id" paginator rows={10} rowsPerPageOptions={[5, 10, 25]}
                     filters={filters1} filterDisplay="menu"
-                    globalFilterFields={[ 'status']}
-                    emptyMessage="No customers found."
+                    globalFilterFields={['status', 'tipoDeVacuna']}
+                    emptyMessage="Usuarios no encontrados :("
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} usuarios"
                     globalFilter={globalFilter} header={header} responsiveLayout="scroll">
@@ -248,6 +287,9 @@ export const TableUsersComponent = () => {
                     <Column field="apellido" header="Apellidos" sortable style={{ minWidth: '16rem' }}></Column>
                     <Column field="correo" header="Correo" sortable style={{ minWidth: '10rem' }}></Column>
                     <Column field="estadoVacunas" header="Estado de vacuna" body={statusBodyTemplate} sortable style={{ minWidth: '12rem' }} showFilterMatchModes={false} filter filterElement={statusFilterTemplate}></Column>
+                    <Column field="tipoDeVacuna" header="Tipo Vacuna" sortable style={{ minWidth: '10rem' }} body={vaccineBodyTemplate} showFilterMatchModes={false} filter filterElement={vaccineTypeFilterTemplate}></Column>
+                    <Column field="fechaDeVacunacion" header="Fecha Vacunación" sortable style={{ minWidth: '10rem' }} filterField="date" dataType="date" body={dateBodyTemplate}
+                        filter filterElement={dateFilterTemplate} ></Column>
                     <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '8rem' }}></Column>
                 </DataTable>
             </div>

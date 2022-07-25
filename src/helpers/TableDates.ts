@@ -6,7 +6,8 @@ export const tableItems = {
     correo: '',
     rol: '',
     apellido:'',
-
+    tipoDeVacuna:'',
+    fechaDeVacunacion:''
 };
 
 export const roles = [
