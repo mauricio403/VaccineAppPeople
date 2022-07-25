@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
@@ -12,13 +12,14 @@ import { Chip } from 'primereact/chip';
 import { Toolbar } from 'primereact/toolbar';
 import { useFormik } from 'formik';
 import { classNames } from 'primereact/utils';
-import { PatchUser } from '../../redux/users/usersThunks';
+import { PatchUser, getUserById } from '../../redux/users/usersThunks';
+import { Toast } from 'primereact/toast';
 
 const cities = [
   { name: 'Vacunado', code: 'true' },
   { name: 'No Vacunado', code: 'false' },
 
-]; 
+];
 const tipoVacuna = [
   { name: 'Sputnik', code: 'true' },
   { name: 'AstraZeneca', code: 'false' },
@@ -41,24 +42,18 @@ interface UserProps {
 export const UserPage = () => {
 
   const { user } = useSelector((state: RootState) => state.auth);
+  const { active } = useSelector((state: RootState) => state.users);
+  const toast = useRef(null);
 
-  const [selectedCity1, setSelectedCity1] = useState<any>(null);
+
 
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    dispatch(getUserById(user.uid) as any);
+  }, [])
 
-  const [vacunado, setVacunado] = useState(false);
 
-  const onCityChange = (e: { value: any }) => {
-    setSelectedCity1(e.value);
-    if (e.value.code === 'true') {
-      setVacunado(true);
-    }
-    else {
-      setVacunado(false);
-    }
-
-  }
 
   const leftContents = (
     <>
@@ -94,7 +89,11 @@ export const UserPage = () => {
       }
       if (!data.telefono) {
         errors.telefono = 'Telefono requerido';
+      } //verificar que no tenga un cero inicial
+      else if (data.telefono.toString().charAt(0) === '0') {
+        errors.telefono = 'No inicia con cero';
       }
+
       if (!data.estadoVacuna) {
         errors.estadoVacuna = 'Campo requerido';
       }
@@ -102,12 +101,12 @@ export const UserPage = () => {
     },
     onSubmit: (data) => {
       handleSubmit()
-      console.log(data);
+      toast.current.show({ severity: 'success', summary: 'Información Actualizada!',  life: 5000 });
     }
   });
 
   const handleSubmit = () => {
-    dispatch(PatchUser( formik.values.fechaNacimiento , formik.values.estadoVacuna,  formik.values.tipoVacuna, formik.values.numeroDosis, formik.values.telefono,   formik.values.direccion,  formik.values.fechaVacunacion, user.uid,) as any);
+    dispatch(PatchUser(formik.values.fechaNacimiento, formik.values.estadoVacuna, formik.values.tipoVacuna, formik.values.numeroDosis, formik.values.telefono, formik.values.direccion, formik.values.fechaVacunacion, user.uid,) as any);
   }
 
   const isFormFieldValid = (name: string) => !!(formik.touched[name] && formik.errors[name]);
@@ -130,25 +129,29 @@ export const UserPage = () => {
 
       <Toolbar left={leftContents} right={rightContents} className='mb-5' />
 
+      <Toast ref={toast} />
 
       <div className='card flex justify-content-center card-container mb-5'>
 
         <Card title="Tu información" style={{ width: '25em' }}>
-          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Cédula: {user.cedula}</p>
-          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Nombres: {user.nombre}</p>
-          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Apellidos: {user.apellido}</p>
-          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Correo: {user.correo}</p>
-          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Estado de Vacunación: {user.estadoVacunas}</p>
+          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Cédula: {active.cedula}</p>
+          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Nombres: {active.nombre}</p>
+          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Apellidos: {active.apellido}</p>
+          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Fecha Nacimiento: {active.fechaNacimiento}</p>
+          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Correo: {active.correo}</p>
+          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Dirección: {active.direccion}</p>
+          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Telefono: {active.telefono}</p>
+          <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Estado de Vacunación: {active.estadoVacunas}</p>
           {
-            user.estadoVacunas === 'Vacunado' ?
+            active.estadoVacunas === 'Vacunado' ?
               <>
-                <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Tipo de Vacuna: {user.tipoDeVacuna}</p>
+                <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Tipo de Vacuna: {active.tipoDeVacuna}</p>
                 <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Fecha de Vacunación: {
-                  user.fechaDeVacunacion ?
-                    user.fechaDeVacunacion.split('T')[0]
+                  active.fechaDeVacunacion ?
+                    active.fechaDeVacunacion.split('T')[0]
                     : 'No Vacunado'
                 }</p>
-                <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Número de dosis: {user.numeroDosis}</p>
+                <p className="m-0 col-12" style={{ lineHeight: '1.5' }}>Número de dosis: {active.numeroDosis}</p>
               </>
 
               :
@@ -200,40 +203,40 @@ export const UserPage = () => {
                   {getFormErrorMessage('estadoVacuna')}
                 </div>
               </div>
-              
-                  <>
-                    <div className="col-12 md:col-6">
-                      <div className="p-inputgroup">
-                        <span className="p-inputgroup-addon">
-                          <i className="pi pi-align-center"></i>
-                        </span>
-                        <Dropdown disabled={formik.values.estadoVacuna === 'No Vacunado'} id='tipoVacuna' name='tipoVacuna' value={formik.values.tipoVacuna} options={tipoVacuna} onChange={formik.handleChange} optionLabel="name" optionValue="name" placeholder="Tipo de vacuna" />
-                        {getFormErrorMessage('tipoVacuna')}
-                      </div>
-                    </div>
 
-                    <div className="col-12 md:col-6">
-                      <div className="p-inputgroup">
-                        <span className="p-inputgroup-addon">
-                          <i className="pi pi-calendar"></i>
-                        </span>
-                        <Calendar disabled={formik.values.estadoVacuna === 'No Vacunado'} placeholder='Fecha de vacunacion' className={classNames({ 'p-invalid': isFormFieldValid('fechaVacunacion') })} id='fechaVacunacion' name='fechaVacunacion' value={formik.values.fechaVacunacion} onChange={formik.handleChange} />
-                      </div>
-                    </div>
+              <>
+                <div className="col-12 md:col-6">
+                  <div className="p-inputgroup">
+                    <span className="p-inputgroup-addon">
+                      <i className="pi pi-align-center"></i>
+                    </span>
+                    <Dropdown disabled={formik.values.estadoVacuna === 'No Vacunado'} id='tipoVacuna' name='tipoVacuna' value={formik.values.tipoVacuna} options={tipoVacuna} onChange={formik.handleChange} optionLabel="name" optionValue="name" placeholder="Tipo de vacuna" />
+                    {getFormErrorMessage('tipoVacuna')}
+                  </div>
+                </div>
 
-                    <div className="col-12 md:col-6">
-                      <div className="p-inputgroup">
-                        <span className="p-inputgroup-addon">
-                          <i className="pi pi-sort-numeric-down-alt"></i>
-                        </span>
-                        <InputText disabled={formik.values.estadoVacuna === 'No Vacunado'} type='number' placeholder="Numero de dosis" className={classNames({ 'p-invalid': isFormFieldValid('numeroDosis') })} id='numeroDosis' name='numeroDosis' value={formik.values.numeroDosis} onChange={formik.handleChange} />
-                      </div>
-                    </div>
-                  </>
-                
+                <div className="col-12 md:col-6">
+                  <div className="p-inputgroup">
+                    <span className="p-inputgroup-addon">
+                      <i className="pi pi-calendar"></i>
+                    </span>
+                    <Calendar disabled={formik.values.estadoVacuna === 'No Vacunado'} placeholder='Fecha de vacunacion' className={classNames({ 'p-invalid': isFormFieldValid('fechaVacunacion') })} id='fechaVacunacion' name='fechaVacunacion' value={formik.values.fechaVacunacion} onChange={formik.handleChange} />
+                  </div>
+                </div>
+
+                <div className="col-12 md:col-6">
+                  <div className="p-inputgroup">
+                    <span className="p-inputgroup-addon">
+                      <i className="pi pi-sort-numeric-down-alt"></i>
+                    </span>
+                    <InputText disabled={formik.values.estadoVacuna === 'No Vacunado'} type='number' placeholder="Numero de dosis" className={classNames({ 'p-invalid': isFormFieldValid('numeroDosis') })} id='numeroDosis' name='numeroDosis' value={formik.values.numeroDosis} onChange={formik.handleChange} />
+                  </div>
+                </div>
+              </>
+
 
               <div className="col-12 md:col">
-                <Button label="Guardar"  type ='button' onClick={handleLogin} className="p-button-success flex justify-content-center" />
+                <Button label="Guardar" type='button' onClick={handleLogin} className="p-button-success flex justify-content-center" />
               </div>
             </div>
           </Card>

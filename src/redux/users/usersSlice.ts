@@ -64,6 +64,9 @@ export const usersSlice = createSlice({
         setPacthUser: (state, action: PayloadAction<Usuario>) => {
             const index = state.users.findIndex(user => user.uid === action.payload.uid)
             state.users[index] = action.payload
+        },
+        setUserById: (state, action: PayloadAction<Usuario>) => {
+            state.active = action.payload
         }
     },
 })
@@ -82,5 +85,6 @@ export const {
     deleteUser,
     setMessage,
     setUpdateUser,
-    setPacthUser
+    setPacthUser,
+    setUserById
 } = usersSlice.actions

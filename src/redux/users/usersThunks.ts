@@ -1,7 +1,7 @@
 import { AppDispatch } from '../store';
-import { deleteUser, setMessage, setNewUser, setPacthUser, setUpdateUser, setUsers, startDeleteing, startLoadingData, startSaving, stopDeleteing, stopLoadingData, stopSaving } from './usersSlice';
+import { deleteUser, setMessage, setNewUser, setPacthUser, setUpdateUser, setUserById, setUsers, startDeleteing, startLoadingData, startSaving, stopDeleteing, stopLoadingData, stopSaving } from './usersSlice';
 import { authApi } from '../../api/authApi';
-import { UsersResponse, Usuario, CreateUserResponse, DeleteUserResponse, UpdateUserResponse, PatchUserResponse } from '../../interfaces/userInterface';
+import { UsersResponse, Usuario, CreateUserResponse, DeleteUserResponse, UpdateUserResponse, PatchUserResponse, UserByIDResponse } from '../../interfaces/userInterface';
 import { clearErrorMessage } from '../auth/authSlices';
 
 
@@ -11,6 +11,20 @@ export const LoadUsers = () => {
         try {
             const resp = await authApi.get<UsersResponse>('/usuarios');
             dispatch(setUsers(resp.data.usuarios));
+            dispatch(stopLoadingData());
+        } catch (error) {
+            console.log(error);
+            dispatch(stopLoadingData());
+        }
+    }
+}
+
+export const getUserById = (uid: string) => {
+    return async (dispatch: AppDispatch) => {
+        dispatch(startLoadingData());
+        try {
+            const resp = await authApi.get<UserByIDResponse>(`/usuarios/${uid}`);
+            dispatch(setUserById(resp.data));
             dispatch(stopLoadingData());
         } catch (error) {
             console.log(error);
@@ -58,13 +72,14 @@ export const UpdateUser = (nombre: string, apellido: string, cedula: number, cor
     }
 }
 
-export const PatchUser = (fechaNacimiento:string, estadoVacunas:string, tipoDeVacuna:string, numeroDosis:number, telefono: number, direccion:string, fechaDeVacunacion: string, id:string,) => {
+export const PatchUser = (fechaNacimiento: string, estadoVacunas: string, tipoDeVacuna: string, numeroDosis: number, telefono: number, direccion: string, fechaDeVacunacion: string, id: string,) => {
 
     return async (dispatch: AppDispatch) => {
         dispatch(startSaving());
         try {
             const resp = await authApi.patch<PatchUserResponse>(`/usuarios/${id}`, { fechaNacimiento, estadoVacunas, tipoDeVacuna, numeroDosis, telefono, direccion, fechaDeVacunacion });
-            dispatch(setPacthUser(resp.data.usuario as Usuario ));
+            dispatch(setPacthUser(resp.data.usuario as Usuario));
+            dispatch(getUserById(id));
             console.log(resp.data);
             dispatch(stopSaving());
         } catch (error: any) {
@@ -90,7 +105,7 @@ export const DeleteUser = (uid: string) => {
                 }
             })
             dispatch(deleteUser(resp.data as Usuario));
-            dispatch(LoadUsers());  
+            dispatch(LoadUsers());
             dispatch(stopDeleteing());
         } catch (error: any) {
             dispatch(stopDeleteing());
