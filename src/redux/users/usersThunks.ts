@@ -58,13 +58,14 @@ export const UpdateUser = (nombre: string, apellido: string, cedula: number, cor
     }
 }
 
-export const PatchUser = (id:string, fechaNacimiento:any, estadoVacunas:string, tipoDeVacuna:string, numeroDosis:number, telefono: number, direccion:string, fechaDeVacunacion: string) => {
+export const PatchUser = (fechaNacimiento:string, estadoVacunas:string, tipoDeVacuna:string, numeroDosis:number, telefono: number, direccion:string, fechaDeVacunacion: string, id:string,) => {
 
     return async (dispatch: AppDispatch) => {
         dispatch(startSaving());
         try {
             const resp = await authApi.patch<PatchUserResponse>(`/usuarios/${id}`, { fechaNacimiento, estadoVacunas, tipoDeVacuna, numeroDosis, telefono, direccion, fechaDeVacunacion });
-            dispatch(setPacthUser(resp.data.usuario ));
+            dispatch(setPacthUser(resp.data.usuario as Usuario ));
+            console.log(resp.data);
             dispatch(stopSaving());
         } catch (error: any) {
             const msg = error.response.data.errors.map(error => error.msg).join(', ');

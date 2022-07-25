@@ -12,6 +12,7 @@ import { Chip } from 'primereact/chip';
 import { Toolbar } from 'primereact/toolbar';
 import { useFormik } from 'formik';
 import { classNames } from 'primereact/utils';
+import { PatchUser } from '../../redux/users/usersThunks';
 
 const cities = [
   { name: 'Vacunado', code: 'true' },
@@ -45,9 +46,6 @@ export const UserPage = () => {
 
   const dispatch = useDispatch();
 
-
-
-  const [tipoVacuna1, setTipovacuna1] = useState<any>(null);
 
   const [vacunado, setVacunado] = useState(false);
 
@@ -103,10 +101,14 @@ export const UserPage = () => {
       return errors;
     },
     onSubmit: (data) => {
+      handleSubmit()
       console.log(data);
-      // formik.resetForm();
     }
   });
+
+  const handleSubmit = () => {
+    dispatch(PatchUser( formik.values.fechaNacimiento , formik.values.estadoVacuna,  formik.values.tipoVacuna, formik.values.numeroDosis, formik.values.telefono,   formik.values.direccion,  formik.values.fechaVacunacion, user.uid,) as any);
+  }
 
   const isFormFieldValid = (name: string) => !!(formik.touched[name] && formik.errors[name]);
 
