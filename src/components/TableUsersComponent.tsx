@@ -234,11 +234,6 @@ export const TableUsersComponent = () => {
         setGlobalFilterValue2('');
     }
 
-
-    const statusBodyTemplate2 = (rowData) => {
-        return <span className={`customer-badge status-${rowData.status}`}>{rowData.status}</span>;
-    }
-
     const statusFilterTemplate = (options) => {
         return <Dropdown value={options.value} options={statuses} onChange={(e) => options.filterCallback(e.value, options.index)} itemTemplate={statusItemTemplate} placeholder="Select a Status" className="p-column-filter" showClear />;
     }
@@ -252,9 +247,6 @@ export const TableUsersComponent = () => {
     const vaccineTypeItemTemplate = (option) => {
         return <span className={`customer-badge status-${option}`}>{option}</span>;
     }
-
-
-
 
     const dateBodyTemplate = (rowData) => {
         const D = new Date(rowData.fechaDeVacunacion);
@@ -332,9 +324,6 @@ export const TableUsersComponent = () => {
                     </span>
                     <Dropdown id="rol" name="rol" value={formik.values.rol} onChange={formik.handleChange} options={roles} optionValue='code' optionLabel="name" placeholder="Rol de usuario" />
                 </div>
-
-
-
 
             </Dialog>
 

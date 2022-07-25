@@ -6,10 +6,10 @@ export interface LoginResponse {
 
 export interface Usuario {
     telefono?: number;
-    estadoVacunas:     string;
-    tipoDeVacuna:      string;
-    fechaDeVacunacion: string;
-    numeroDosis:       number;
+    estadoVacunas?:     string;
+    tipoDeVacuna?:      string;
+    fechaDeVacunacion?: string;
+    numeroDosis?:       number;
     rol:               string;
     estado:            boolean;
     google:            boolean;
