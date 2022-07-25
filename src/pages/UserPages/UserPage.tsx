@@ -151,7 +151,7 @@ export const UserPage = () => {
                     active.fechaDeVacunacion.split('T')[0]
                     : 'No Vacunado'
                 }</div>
-                <div className="m-0 col-12" style={{ lineHeight: '1.5' }}><Chip label=" Nacimiento" icon="pi pi-sort-numeric-down" className="mr-2 mb-2" /> {active.numeroDosis}</div>
+                <div className="m-0 col-12" style={{ lineHeight: '1.5' }}><Chip label="Numero de Dosis" icon="pi pi-sort-numeric-down" className="mr-2 mb-2" /> {active.numeroDosis}</div>
               </>
 
               :
